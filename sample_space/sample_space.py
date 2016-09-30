@@ -18,6 +18,12 @@ def RandomSign(p):
 def Categ(categories, weights):
     return np.random.choice(categories, p=normalized(weights))
 
+def is_greater_than(y): return lambda x: x > y
+def is_less_than(y): return lambda x: x < y
+def is_at_least(y): return lambda x: x >= y
+def is_at_most(y): return lambda x: x <= y
+def equals(y): return lambda x: x == y
+
 # SampleSpace is a class that wraps a "Sample" (defining an experiment),
 # and by repeatedly running that experiment lets you estimate event
 # probabilities, optionally conditioned on attribute/function of the sample.
