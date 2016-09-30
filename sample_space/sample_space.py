@@ -15,8 +15,8 @@ def Bin(n, p):
 def RandomSign(p):
     return 2*int(Bern(p)) - 1
 
-def Categ(cats, ps):
-    return np.random.choice(cats, p=normalized(ps))
+def Categ(categories, weights):
+    return np.random.choice(categories, p=normalized(weights))
 
 # SampleSpace is a class that wraps a "Sample" (defining an experiment),
 # and by repeatedly running that experiment lets you estimate event
