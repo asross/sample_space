@@ -1,6 +1,6 @@
-import numpy
 import random
-import matplotlib.pyplot
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Some helpers often useful in defining experiments
 def normalized(ps):
@@ -16,7 +16,7 @@ def RandomSign(p):
     return 2*int(Bern(p)) - 1
 
 def Categ(cats, ps):
-    return numpy.random.choice(cats, p=normalized(ps))
+    return np.random.choice(cats, p=normalized(ps))
 
 # SampleSpace is a class that wraps a "Sample" (defining an experiment),
 # and by repeatedly running that experiment lets you estimate event
@@ -36,23 +36,26 @@ class SampleSpace():
                 n_event += int(self.experiment[event])
         return n_event / n_given
 
+    def probability_of(self, event, given=[], iters=None):
+        return self.probability_that(event, given=given, iters=iters)
+
     def distribution_of(self, rv, given=[], iters=None):
         values = []
         for _ in range(iters or self.iters):
             self.experiment.rerun()
             if all(self.experiment[g] for g in given):
                 values.append(self.experiment[rv])
-        return values
+        return np.array(values)
 
-    def plot_distribution_of(self, rv, given=[], iters=None, bins=None):
+    def plot_distribution_of(self, rv, given=[], iters=None, **kwargs):
         distribution = self.distribution_of(rv, given, iters)
         if len(given):
-            matplotlib.pyplot.title('P({} = x|{})'.format(rv, ','.join(given)))
+            plt.title('P({} = x|{})'.format(rv, ','.join(given)))
         else:
-            matplotlib.pyplot.title('P({} = x)'.format(rv))
-        matplotlib.pyplot.xlabel('x')
-        matplotlib.pyplot.ylabel('p')
-        matplotlib.pyplot.hist(distribution, normed=True, bins=bins)
+            plt.title('P({} = x)'.format(rv))
+        plt.xlabel('x')
+        plt.ylabel('p')
+        return plt.hist(distribution, normed=True, **kwargs)
 
 # a bit of hackery to let you condition on sample attributes,
 # instance methods, or external functions of either one.
