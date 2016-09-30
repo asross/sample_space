@@ -21,16 +21,15 @@ This library also exposes a few basic functions (`Bern(p)`, `Bin(n,p)`, `RandomS
 For a concrete example, check out the [iPython notebook example](./example.ipynb) (if you're reading this on Github), or read the following:
 
 ```python
-import sample_space
-import matplotlib.pyplot as plt
+from sample_space import *
 
-class NCoinTosses(sample_space.Experiment):
+class NCoinTosses(Experiment):
     def __init__(self, n, p):
         self.n = n
         self.p = p
 
     def rerun(self):
-        self.tosses = [sample_space.Bern(self.p) for _ in range(self.n)]
+        self.tosses = [Bern(self.p) for _ in range(self.n)]
 
     def heads(self):
         return sum(self.tosses)
@@ -41,7 +40,7 @@ class NCoinTosses(sample_space.Experiment):
     def first_toss_heads(self):
         return self.tosses[0]
 
-space = sample_space.SampleSpace(NCoinTosses(10, 0.5), iters=20000)
+space = SampleSpace(NCoinTosses(10, 0.5), iters=20000)
 
 # ask for probability of any truthy method
 print(space.probability_that('there_are_at_least_two_heads'))
@@ -53,20 +52,26 @@ print(space.probability_of('first_toss_heads'))
 print(space.probability_of('first_toss_heads', iters=1000))
 
 # ask for probabilities of functions of random variables
-def gt(x): return lambda y: y > x
-print(space.probability_that(['heads', gt(5)]))
+print(space.probability_that(['heads', is_greater_than(5)]))
 
 # ask for conditional probabilities
-print(space.probability_that(['heads', gt(5)], given=['first_toss_heads']))
-print(space.probability_of('first_toss_heads', given=[['heads', gt(5)]]))
-print(space.probability_that(['heads', gt(5)],
+print(space.probability_that(['heads', is_greater_than(5)], given=['first_toss_heads']))
+print(space.probability_of('first_toss_heads', given=[['heads', is_greater_than(5)]]))
+print(space.probability_that(['heads', is_greater_than(5)],
     given=['first_toss_heads', 'there_are_at_least_two_heads']))
 
-# plot distribution histograms
-space.plot_distribution_of('heads')
+# some plots
+fig = plt.figure(figsize=(14,3))
 
-# plot conditional distribution histograms (with kwargs)
-space.plot_distribution_of('heads', given=['first_toss_heads'], bins=10)
+# plot distribution histograms
+fig.add_subplot(121)
+space.plot_distribution_of('heads') # pass kwargs
+
+# plot conditional distribution histograms
+fig.add_subplot(122)
+space.plot_distribution_of('heads', given=['first_toss_heads'], bins=10) # can pass kwargs
+
+plt.show()
 ```
 
 ## License
