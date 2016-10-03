@@ -18,6 +18,15 @@ def RandomSign(p):
 def Categ(categories, weights):
     return np.random.choice(categories, p=normalized(weights))
 
+def indicator(value):
+    return int(bool(value))
+
+def probability_that(event_occurs, iters=10000):
+    return expected_value_of(lambda: indicator(event_occurs()), iters)
+
+def expected_value_of(random_variable, iters=10000):
+    return np.mean([random_variable() for _ in range(iters)])
+
 def is_greater_than(y): return lambda x: x > y
 def is_less_than(y): return lambda x: x < y
 def is_at_least(y): return lambda x: x >= y
@@ -33,6 +42,9 @@ class SampleSpace():
         self.iters = iters
 
     def probability_that(self, event, given=[], iters=None):
+        return self.probability_of(event, given=given, iters=iters)
+
+    def probability_of(self, event, given=[], iters=None):
         n_given = 0
         n_event = 0
         for _ in range(iters or self.iters):
@@ -42,9 +54,6 @@ class SampleSpace():
                 n_event += int(self.experiment[event])
         return n_event / n_given
 
-    def probability_of(self, event, given=[], iters=None):
-        return self.probability_that(event, given=given, iters=iters)
-
     def distribution_of(self, rv, given=[], iters=None):
         values = []
         for _ in range(iters or self.iters):
@@ -53,15 +62,35 @@ class SampleSpace():
                 values.append(self.experiment[rv])
         return np.array(values)
 
+    def expected_value_of(self, rv, given=[], iters=None):
+        return np.mean(self.distribution_of(rv, given, iters))
+
+    def variance_of(self, rv, given=[], iters=None):
+        distribution = self.distribution_of(rv, given, iters)
+        expected_val = np.mean(distribution)
+        return np.mean([(val - expected_val)**2 for val in distribution])
+
+    def standard_deviation_of(self, rv, given=[], iters=None):
+        return np.sqrt(self.variance_of(rv, given, iters))
+
     def plot_distribution_of(self, rv, given=[], iters=None, **kwargs):
         distribution = self.distribution_of(rv, given, iters)
+        E = np.mean(distribution)
+
+        if 'bins' in kwargs and kwargs['bins'] == 'all':
+            kwargs['bins'] = max(distribution) - min(distribution)
+        if 'label' not in kwargs:
+            kwargs['label'] = rv
         if len(given):
             plt.title('P({} = x|{})'.format(rv, ','.join(given)))
         else:
             plt.title('P({} = x)'.format(rv))
+
         plt.xlabel('x')
         plt.ylabel('p')
-        return plt.hist(distribution, normed=True, **kwargs)
+        hist = plt.hist(distribution, normed=True, **kwargs)
+        plt.axvline(E, color='red', label='E={:.2f}'.format(E))
+        return hist
 
 # a bit of hackery to let you condition on sample attributes,
 # instance methods, or external functions of either one.
