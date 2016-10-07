@@ -6,7 +6,7 @@ readme = check_output("pandoc --from=markdown --to=rst README.md",
                       shell=True).decode('utf-8')
 
 setuptools.setup(name='sample_space',
-      version='0.0.1',
+      version='0.0.2',
       test_suite='nose.collector',
       tests_require=['nose'],
       description='A simple API for defining sample spaces (to run simple statistical simulations)',
