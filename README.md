@@ -6,6 +6,12 @@
 
 Mostly to help sanity-check my statistics homework solutions, but writing this helped me think about random variables as functions mapping from events in a sample space to points in R^n, and about what it means to condition. It's probably not ideal for complex, high-performance simulations, but you might find its API convenient for sanity-checking simple problems!
 
+## Installation
+
+```
+pip install sample_space
+```
+
 ## Usage
 
 First, define a subclass of `sample_space.Experiment` that responds to `rerun()`. Re-run should perform some random experiment and set instance variables to its results. You can also define functions of those results (such as composing them to form more complex events, or computing values of random variables).
