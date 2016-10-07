@@ -4,7 +4,7 @@
 
 ## Why?
 
-Writing this helped me think about random variables as functions mapping from events in a sample space to points in R^n, and about what it means to condition. It's also useful for checking answers / visualizing statistics problems!
+Mostly to help sanity-check my statistics homework solutions, but writing this helped me think about random variables as functions mapping from events in a sample space to points in R^n, and about what it means to condition. It's probably not ideal for complex, high-performance simulations, but you might find its API convenient for sanity-checking simple problems!
 
 ## Usage
 
@@ -60,6 +60,12 @@ print(space.probability_of('first_toss_heads', given=[['heads', is_greater_than(
 print(space.probability_that(['heads', is_greater_than(5)],
     given=['first_toss_heads', 'there_are_at_least_two_heads']))
 
+# ask for expectations and variances, conditionally or absolutely
+print(space.expected_value_of('heads'))
+print(space.expected_value_of('heads', given=['first_toss_heads']))
+print(space.variance_of('heads'))
+print(space.variance_of('heads', given=['first_toss_heads']))
+
 # some plots
 fig = plt.figure(figsize=(14,3))
 
@@ -72,6 +78,25 @@ fig.add_subplot(122)
 space.plot_distribution_of('heads', given=['first_toss_heads'], bins=10) # can pass kwargs
 
 plt.show()
+```
+
+## Lite Version
+
+You can also just define a random event / random variable function that returns either a boolean or a number, and call `probability_that` and `expected_value_of` without defining a full `SampleSpace`:
+
+```python
+import sample_space as ss
+
+def weighted_coin_flip_is_heads(p=0.4):
+  return ss.Bern(p)
+
+def n_weighted_heads(n=100, p=0.4):
+  return sum(weighted_coin_flip_is_heads(p) for _ in range(n))
+
+print(ss.probability_that(weighted_coin_flip_is_heads))
+print(ss.probability_that(lambda: weighted_coin_flip_is_heads(0.5))
+print(ss.expected_value_of(n_weighted_heads))
+print(ss.expected_value_of(lambda: n_weighted_heads(200, 0.3)))
 ```
 
 ## License
