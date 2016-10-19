@@ -47,28 +47,35 @@ class NCoinTosses(Experiment):
 space = SampleSpace(NCoinTosses(10, 0.5), iters=20000)
 
 # ask for probability of any truthy method
-print(space.probability_that('there_are_at_least_two_heads'))
+print('        P(#H>=2):', space.probability_that('there_are_at_least_two_heads'))
 
 # alias for the above, if it's more grammatical
-print(space.probability_of('first_toss_heads'))
+print('           P(H1):', space.probability_of('first_toss_heads'))
 
 # change the number of iterations
-print(space.probability_of('first_toss_heads', iters=1000))
+print(' P(H1), 1K iters:', space.probability_of('first_toss_heads', iters=1000))
 
 # ask for probabilities of functions of random variables
-print(space.probability_that(['heads', is_greater_than(5)]))
+print('         P(#H>5):', space.probability_that(['heads', is_greater_than(5)]))
 
 # ask for conditional probabilities
-print(space.probability_that(['heads', is_greater_than(5)], given=['first_toss_heads']))
-print(space.probability_of('first_toss_heads', given=[['heads', is_greater_than(5)]]))
-print(space.probability_that(['heads', is_greater_than(5)],
+print('      P(#H>5|H1):', space.probability_that(['heads', is_greater_than(5)], given=['first_toss_heads']))
+print('      P(H1|#H>5):', space.probability_of('first_toss_heads', given=[['heads', is_greater_than(5)]]))
+print(' P(#H>5|H1,H>=2):', space.probability_that(['heads', is_greater_than(5)],
     given=['first_toss_heads', 'there_are_at_least_two_heads']))
 
-# ask for expectations and variances, conditionally or absolutely
-print(space.expected_value_of('heads'))
-print(space.expected_value_of('heads', given=['first_toss_heads']))
-print(space.variance_of('heads'))
-print(space.variance_of('heads', given=['first_toss_heads']))
+# ask for expectations, variances, and moments, conditionally or absolutely
+print('           E(#H):', space.expected_value_of('heads'))
+print('        E(#H|H1):', space.expected_value_of('heads', given=['first_toss_heads']))
+print('         Var(#H):', space.variance_of('heads'))
+print('      Var(#H|H1):', space.variance_of('heads', given=['first_toss_heads']))
+print('1st moment of #H:', space.nth_moment_of('heads', 1))
+print('2nd moment of #H:', space.nth_moment_of('heads', 2))
+print('3rd moment of #H:', space.nth_moment_of('heads', 3))
+print('4th moment of #H:', space.nth_moment_of('heads', 4))
+print('  Skewness of #H:', space.nth_moment_of('heads', 3, central=True, normalized=True), '(using nth_moment_of w/ central=True, normalized=True)')
+print('  Skewness of #H:', space.skewness_of('heads'), '(using skewness_of)')
+print('  Kurtosis of #H:', space.kurtosis_of('heads'))
 
 # some plots
 fig = plt.figure(figsize=(14,3))
@@ -76,12 +83,36 @@ fig = plt.figure(figsize=(14,3))
 # plot distribution histograms
 fig.add_subplot(121)
 space.plot_distribution_of('heads') # pass kwargs
+plt.legend()
 
 # plot conditional distribution histograms
 fig.add_subplot(122)
 space.plot_distribution_of('heads', given=['first_toss_heads'], bins=10) # can pass kwargs
-
+plt.legend()
 plt.show()
+```
+
+Which should output (plus some plots):
+
+```
+        P(#H>=2): 0.98975
+           P(H1): 0.502
+ P(H1), 1K iters: 0.48
+         P(#H>5): 0.37665
+      P(#H>5|H1): 0.5076294006183305
+      P(H1|#H>5): 0.6580109757729888
+ P(#H>5|H1,H>=2): 0.49361831442463533
+           E(#H): 4.9983
+        E(#H|H1): 5.48924623116
+         Var(#H): 2.4486457975
+      Var(#H|H1): 2.31806506582
+1st moment of #H: 4.99245
+2nd moment of #H: 27.5097
+3rd moment of #H: 163.13055
+4th moment of #H: 1015.54155
+  Skewness of #H: -0.00454435802967 (using nth_moment_of w/ central=True, normalized=True)
+  Skewness of #H: 0.00414054522343 (using skewness_of)
+  Kurtosis of #H: 2.78225928171
 ```
 
 ## Lite Version

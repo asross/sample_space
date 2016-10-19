@@ -60,18 +60,39 @@ class SampleSpace():
             self.experiment.rerun()
             if all(self.experiment[g] for g in given):
                 values.append(self.experiment[rv])
-        return np.array(values)
+        return np.array(values, dtype=np.float64)
 
     def expected_value_of(self, rv, given=[], iters=None):
         return np.mean(self.distribution_of(rv, given, iters))
+    mean = expected_value_of
 
     def variance_of(self, rv, given=[], iters=None):
         distribution = self.distribution_of(rv, given, iters)
-        expected_val = np.mean(distribution)
-        return np.mean([(val - expected_val)**2 for val in distribution])
+        mean = np.mean(distribution)
+        return np.mean((distribution - mean)**2)
+    var = variance_of
 
     def standard_deviation_of(self, rv, given=[], iters=None):
         return np.sqrt(self.variance_of(rv, given, iters))
+    std = standard_deviation_of
+
+    def nth_moment_of(self, rv, n, given=[], iters=None, central=False, normalized=False):
+        distribution = self.distribution_of(rv, given, iters)
+        if central:
+            mean = np.mean(distribution)
+            distribution -= mean
+            if normalized:
+                variance = np.mean(distribution**2)
+                distribution /= np.sqrt(variance)
+        elif normalized:
+            raise ValueError('should only pass normalized=True if central=True')
+        return np.mean(distribution**n)
+
+    def skewness_of(self, rv, given=[], iters=None):
+        return self.nth_moment_of(rv, 3, given, iters, central=True, normalized=True)
+
+    def kurtosis_of(self, rv, given=[], iters=None):
+        return self.nth_moment_of(rv, 4, given, iters, central=True, normalized=True)
 
     def plot_distribution_of(self, rv, given=[], iters=None, **kwargs):
         distribution = self.distribution_of(rv, given, iters)

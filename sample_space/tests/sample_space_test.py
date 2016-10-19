@@ -34,6 +34,21 @@ class TestSampleSpace(unittest.TestCase):
         avg = np.mean([Categ([0, 1, 2], [1./3]*3) for _ in range(10000)])
         self.assertClose(avg, 1)
 
+    def test_moments(self):
+        class StandardNormal(Experiment):
+            def rerun(self):
+                self.value = np.random.normal()
+
+        ns = SampleSpace(StandardNormal())
+
+        self.assertClose(ns.mean('value', iters=10000), 0)
+        self.assertClose(ns.std('value', iters=10000), 1)
+        self.assertClose(ns.var('value', iters=10000), 1)
+        self.assertClose(ns.nth_moment_of('value', 2, iters=10000), 1)
+        self.assertClose(ns.nth_moment_of('value', 3, iters=100000), 0)
+        self.assertClose(ns.nth_moment_of('value', 4, iters=500000), 3)
+        self.assertClose(ns.nth_moment_of('value', 5, iters=1000000), 0)
+
     def test_sample_space(self):
         mh = SampleSpace(MontyHall())
         self.assertClose(mh.probability_that('you_win_if_you_switch'), 2/3.)
