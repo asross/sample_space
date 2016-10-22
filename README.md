@@ -4,25 +4,40 @@
 
 ## Why?
 
-Mostly to sanity-check statistics homework solutions, but also to wrap my head around random variables as functions mapping events to numbers and the subtleties of conditioning. It's probably not ideal for complex, high-performance simulations, but you might find its API convenient for simplifying small but tricky problems.
+I was running a lot simulations to verify statistics homework solutions, but found myself writing a lot of boilerplate code, and it felt like the programming abstractions I was using didn't map cleanly to the underlying theoretical concepts of probability theory.
 
-## Installation
+One of the primary concepts in probability theory is the idea of a [sample space](https://en.wikipedia.org/wiki/Sample_space), which encapsulates the idea of repeatedly running an experiment with random results, and which all important quantities (the probability of an event, the moments of a random variable) must be defined in relation to. This library just lets you explicitly define your sample space and experiment in an object-oriented fashion. Random variables and events become instance variables or methods defined on an `Experiment`, and probabilities, expectations, moments, and histograms, defined conditionally or absolutely, become instance methods on a `SampleSpace` which wraps that `Experiment`. Then, provided your `Experiment` correctly expresses the underlying statistical process, and provided you rerun your experiment for enough iterations, you can compute arbitrarily complicated conditional probabilities or expectations without fear of careless error.
+
+## Usage
+
+After running
 
 ```
 pip install sample_space
 ```
 
-## Usage
+and including the library, you can define a subclass of `sample_space.Experiment` that responds to `rerun()`. `rerun` should perform some random experiment and store its results as instance variables. You can define more complex events or random variables as instance methods.
 
-First, define a subclass of `Experiment` that responds to `rerun()`. `rerun` should perform some random experiment and store its results as instance variables. You can then define more complex events or random variables as functions of those instance variables.
+Then, initialize a `sample_space.SampleSpace` with an instance of your `Experiment`. You can query your sample space for the `probability_that`/`probability_of` an event identifier, or for a random variable identifier (which can also just be an event, in which case it's interpreted as an indicator), you can ask for the `distribution_of`, `expected_value_of`, `variance_of`, `skewness_of`, `kurtosis_of`, or `nth_moment_of`. Finally, for any of these methods, you can pass a `given` keyword argument with a list of event identifiers, which will make any results you obtain conditional on those events all occurring. Behind the scenes, `SampleSpace` will just `rerun` your experiment 10000 times and average your random variable or count how often an event occurs (conditionally). You can pass an `iters` keyword argument to increase the number of iterations.
 
-Then, initialize a `SampleSpace` with an instance of your `Experiment`. You can now query the sample space for the `probability_of`, `distribution_of`, `expected_value_of`, or `variance_of` any random variable or event by passing the name of a function or attribute of your `Experiment`. You can also use a list/lambda syntax to ask similar questions about arbitrary functions of those rvs and events, or even plot histograms.
+To identify an event or random variable, pass the name of an instance variable or instance method of your experiment, or pass an array with a variable/method name and a lambda function. For example:
 
-This library also exposes a few basic sampling functions (`Bern(p)`, `Bin(n,p)`, `RandomSign(p)`, and `Categ(categories, weights)`) to assist with defining experiments.
+```python
+space = SampleSpace(CoinTossExperiment(10))
+space.probability_that('first_toss_is_heads')
+space.probability_that(['n_heads', lambda h: h > 5])
+space.expected_value_of('n_heads')
+space.expected_value_of('n_heads', given=['first_toss_is_heads'])
+space.probability_that('first_toss_is_heads, given=[['n_heads', lambda h: h > 3], 'last_toss_is_heads'])
+```
+
+`sample_space` defines a few helpful lambda-returning methods (`is_greater_than(x)`, `is_less_than(x)`, `is_at_least(x)`, `is_at_most(x)`, `equals(x)`) for convenience. Of course, you could also define instance methods on your `Experiment` to accomplish the same goal.
+
+The library also exposes a few basic sampling functions (`Bern(p)`, `Bin(n,p)`, `RandomSign(p)`, and `Categ(categories, weights)`) to assist with defining experiments.
 
 ## Example
 
-For a concrete example, check out the [iPython notebook example](./example.ipynb) (if you're reading this on Github), or read the following:
+For a concrete example, check out the [iPython notebook](./example.ipynb) (if you're reading this on Github), or read the following:
 
 ```python
 from sample_space import *
