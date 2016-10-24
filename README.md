@@ -101,7 +101,7 @@ Which should output (plus some plots):
 
 Mostly to avoid bugs / reduce boilerplate in statistical simulations for sanity-checking homework solutions. But also to get a better understanding of probability theory.
 
-[Sample spaces](https://en.wikipedia.org/wiki/Sample_space) are a core concept in probability theory. They encapsulate the idea of repeatedly running an experiment with random results. Almost every important statistical quantity -- the probability of an event, or any moment of a random variable -- is always defined relative to a sample space. So if you're trying to program meaningful simulations, you might as well organize your code by explicitly defining your sample space and experiment.
+[Sample spaces](https://en.wikipedia.org/wiki/Sample_space) are a core concept in probability theory. They encapsulate the idea of repeatedly running an experiment with random results. Almost every important statistical quantity -- the probability of an event, or any moment of a random variable -- is always defined relative to a sample space. So if you're trying to program meaningful simulations, you might as well organize your code by explicitly defining one.
 
 ## Installation / Usage
 
