@@ -1,37 +1,23 @@
-import random
-import numpy as np
 import matplotlib.pyplot as plt
-
-# Some helpers often useful in defining experiments
-def normalized(ps):
-    return [p / sum(ps) for p in ps]
-
-def Bern(p):
-    return random.random() <= p
-
-def Bin(n, p):
-    return sum(Bern(p) for _ in range(n))
-
-def RandomSign(p):
-    return 2*int(Bern(p)) - 1
-
-def Categ(categories, weights):
-    return np.random.choice(categories, p=normalized(weights))
+import numpy as np
+from .lambdas import *
+from .rvs import *
 
 def indicator(value):
     return int(bool(value))
+
+def rv_name(g):
+    if isinstance(g, list):
+        val, fn = g
+        return '{} {}'.format(val, fn.__name__)
+    else:
+        return g
 
 def probability_that(event_occurs, iters=10000):
     return expected_value_of(lambda: indicator(event_occurs()), iters)
 
 def expected_value_of(random_variable, iters=10000):
     return np.mean([random_variable() for _ in range(iters)])
-
-def is_greater_than(y): return lambda x: x > y
-def is_less_than(y): return lambda x: x < y
-def is_at_least(y): return lambda x: x >= y
-def is_at_most(y): return lambda x: x <= y
-def equals(y): return lambda x: x == y
 
 # SampleSpace is a class that wraps a "Sample" (defining an experiment),
 # and by repeatedly running that experiment lets you estimate event
@@ -60,6 +46,14 @@ class SampleSpace():
             self.experiment.rerun()
             if all(self.experiment[g] for g in given):
                 values.append(self.experiment[rv])
+        return np.array(values, dtype=np.float64)
+
+    def joint_distribution_of(self, rvs, given=[], iters=None):
+        values = []
+        for _ in range(iters or self.iters):
+            self.experiment.rerun()
+            if all(self.experiment[g] for g in given):
+                values.append([self.experiment[rv] for rv in rvs])
         return np.array(values, dtype=np.float64)
 
     def expected_value_of(self, rv, given=[], iters=None):
@@ -101,16 +95,30 @@ class SampleSpace():
         if 'bins' in kwargs and kwargs['bins'] == 'all':
             kwargs['bins'] = max(distribution) - min(distribution)
         if 'label' not in kwargs:
-            kwargs['label'] = rv
+            kwargs['label'] = rv_name(rv)
         if len(given):
-            plt.title('P({} = x|{})'.format(rv, ','.join(given)))
+            plt.title('P({} = x|{})'.format(rv, ','.join([rv_name(g) for g in given])))
         else:
             plt.title('P({} = x)'.format(rv))
 
         plt.xlabel('x')
         plt.ylabel('p')
-        hist = plt.hist(distribution, normed=True, **kwargs)
+        norm_weights = np.ones_like(distribution)/float(len(distribution))
+        hist = plt.hist(distribution, weights=norm_weights, **kwargs)
         plt.axvline(E, color='red', label='E={:.2f}'.format(E))
+        return hist
+
+    def plot_joint_distribution_of(self, rvs, given=[], iters=None, **kwargs):
+        assert(len(rvs) == 2)
+        distribution = self.joint_distribution_of(rvs, given, iters)
+        if given:
+            plt.title('P({}=x,{}=y|{}'.format(rvs[0], rvs[1], ','.join([given_name(g) for g in given])))
+        else:
+            plt.title('P({}=x,{}=y)'.format(rvs[0], rvs[1]))
+        plt.xlabel('x')
+        plt.ylabel('y')
+        hist = plt.hist2d(distribution[:,0], distribution[:,1], normed=True, **kwargs)
+        plt.colorbar()
         return hist
 
 # a bit of hackery to let you condition on sample attributes,
