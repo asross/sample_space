@@ -58,17 +58,14 @@ class SampleSpace():
 
     def expected_value_of(self, rv, given=[], iters=None):
         return np.mean(self.distribution_of(rv, given, iters))
-    mean = expected_value_of
 
     def variance_of(self, rv, given=[], iters=None):
         distribution = self.distribution_of(rv, given, iters)
         mean = np.mean(distribution)
         return np.mean((distribution - mean)**2)
-    var = variance_of
 
     def standard_deviation_of(self, rv, given=[], iters=None):
         return np.sqrt(self.variance_of(rv, given, iters))
-    std = standard_deviation_of
 
     def nth_moment_of(self, rv, n, given=[], iters=None, central=False, normalized=False):
         distribution = self.distribution_of(rv, given, iters)
@@ -87,6 +84,25 @@ class SampleSpace():
 
     def kurtosis_of(self, rv, given=[], iters=None):
         return self.nth_moment_of(rv, 4, given, iters, central=True, normalized=True)
+
+    def covariance_of(self, rvs, given=[], iters=None):
+        distribution = self.joint_distribution_of(rvs, given, iters)
+        covariance = np.zeros((len(rvs), len(rvs)))
+        for x in range(len(rvs)):
+            for y in range(len(rvs)):
+                Ex = distribution[:,x].mean()
+                Ey = distribution[:,y].mean()
+                Exy = np.array([d[x]*d[y] for d in distribution]).mean()
+                covariance[x][y] = Exy - Ex*Ey
+        return covariance
+
+    def correlation_of(self, rvs, given=[], iters=None):
+        matrix = self.covariance_of(rvs, given, iters)
+        sds = [np.sqrt(matrix[i][i]) for i in range(len(rvs))]
+        for x in range(len(rvs)):
+            for y in range(len(rvs)):
+                matrix[x][y] /= sds[x]*sds[y]
+        return matrix
 
     def plot_distribution_of(self, rv, given=[], iters=None, **kwargs):
         distribution = self.distribution_of(rv, given, iters)
@@ -120,6 +136,19 @@ class SampleSpace():
         hist = plt.hist2d(distribution[:,0], distribution[:,1], normed=True, **kwargs)
         plt.colorbar()
         return hist
+
+    mean = expected_value_of
+    avg = expected_value_of
+    E = expected_value_of
+    var = variance_of
+    Var = variance_of
+    std = standard_deviation_of
+    sd = standard_deviation_of
+    SD = standard_deviation_of
+    cov = covariance_of
+    Cov = covariance_of
+    corr = correlation_of
+    Corr = correlation_of
 
 # a bit of hackery to let you condition on sample attributes,
 # instance methods, or external functions of either one.
